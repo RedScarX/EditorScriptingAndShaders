@@ -9,6 +9,8 @@ namespace DemoEditor
     {
         private Player player;
         private bool canFold;
+        private int selectedIndex;
+
         private void OnEnable()
         {
             player = (Player)target;
@@ -47,17 +49,38 @@ namespace DemoEditor
             canFold = EditorGUILayout.Foldout(canFold, "Weapons");
             EditorGUI.indentLevel--;
         
+            serializedObject.Update();
             var items = serializedObject.FindProperty(nameof(player.weapon));
                 
             if (canFold)
             {
-                Debug.Log(items.arraySize);
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < items.arraySize; i++)
                 {
-                    GUILayout.Button("Button" + i);
-                    
+                    if (GUILayout.Button(items.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(Weapon.weaponName)).stringValue + i))
+                    {
+                        selectedIndex = i;
+                    }
+                }
+
+                if (selectedIndex >= 0 && selectedIndex <= items.arraySize)
+                {
+                    EditorGUI.indentLevel++;
+                    var gg = EditorGUILayout.PropertyField(items.GetArrayElementAtIndex(selectedIndex),new GUIContent("Weapons "+selectedIndex),true);
+                    EditorGUI.indentLevel--;
                 }
             }
+
+            serializedObject.ApplyModifiedProperties();
+            EditorGUILayout.EndVertical();
+        }
+
+        private static void DrawElemrnds(SerializedProperty items)
+        {
+            var indent = EditorGUI.indentLevel;
+            EditorGUILayout.BeginVertical();
+            EditorGUI.indentLevel += 10;
+            EditorGUILayout.PropertyField(items.GetArrayElementAtIndex(1));
+            EditorGUI.indentLevel = indent;
             EditorGUILayout.EndVertical();
         }
     }
